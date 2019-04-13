@@ -1,0 +1,4 @@
+rootProject.name = 'abola'
+include 'frontend'
+include 'web'
+

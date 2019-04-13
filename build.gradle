@@ -1,0 +1,19 @@
+group = 'pt.fabm'
+version = '1.0.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+  jcenter()
+}
+
+task cleanPublic(type: Delete) {
+  delete 'web/src/main/resources/public'
+  followSymlinks = true
+}
+
+task copyPublic(type: Copy) {
+  from "frontend/dist"
+  into "web/src/main/resources/public"
+}
+
+task compileAndCopy(dependsOn:[':frontend:build','copyPublic'])
