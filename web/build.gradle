@@ -27,6 +27,11 @@ def watchForChange = 'src/**/*'
 def doOnChange = './gradlew classes'
 
 dependencies {
+  api 'io.jsonwebtoken:jjwt-api:0.10.5'
+  runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.10.5'
+  runtimeOnly('io.jsonwebtoken:jjwt-orgjson:0.10.5')
+  runtimeOnly('io.jsonwebtoken:jjwt-jackson:0.10.5')
+
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
   implementation "io.vertx:vertx-core:$vertxVersion"
   implementation "io.vertx:vertx-rx-java2:$vertxVersion"
