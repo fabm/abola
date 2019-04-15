@@ -19,8 +19,8 @@ class ReservationService(val vertx: Vertx) {
           json {
             obj(
               "reserved" to isReserved,
-              "start" to startDate,
-              "end" to endDate
+              "start" to startDate.toString(),
+              "end" to endDate.toString()
             )
           }.toBuffer().let { buffer -> Buffer.newInstance(buffer) }
         )

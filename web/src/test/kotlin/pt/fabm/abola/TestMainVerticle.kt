@@ -10,6 +10,7 @@ import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import io.vertx.kotlin.core.json.get
 import io.vertx.kotlin.core.json.json
+import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.kotlin.core.json.obj
 import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.core.buffer.Buffer
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import pt.fabm.abola.models.Reservation
+import pt.fabm.abola.models.SimpleDate
 import pt.fabm.abola.models.UserRegisterIn
 import pt.fabm.abola.rest.RestVerticle
 import java.security.MessageDigest
@@ -36,20 +38,20 @@ class TestMainVerticle {
 
   @BeforeEach
   fun deployVerticle(vertx: Vertx, testContext: VertxTestContext) {
-    vertx.deployVerticle(MainVerticle(), DeploymentOptions().setConfig(json {
-      obj(
-        "verticles" to obj(
+    vertx.deployVerticle(MainVerticle(), DeploymentOptions().setConfig(
+      jsonObjectOf(
+        "verticles" to jsonObjectOf(
           "dao" to DaoVerticleTest::class.java.canonicalName,
           "rest" to RestVerticle::class.java.canonicalName
         ),
-        "confs" to obj(
-          "rest" to obj(
+        "confs" to jsonObjectOf(
+          "rest" to jsonObjectOf(
             "port" to 8888,
             "host" to "localhost"
           )
         )
       )
-    })) { ar ->
+    )) { ar ->
       if (ar.succeeded()) {
         testContext.completeNow()
       } else {
@@ -172,8 +174,8 @@ class TestMainVerticle {
     val client = WebClient.create(vertx)
     val eventBus = vertx.eventBus()
     val reservation = Reservation(
-      LocalDateTime.of(2019, 1, 2, 3, 4),
-      LocalDateTime.of(2019, 1, 2, 3, 5)
+      SimpleDate(2019, 1, 2, 3, 4),
+      SimpleDate(2019, 1, 2, 3, 5)
     )
 
     val jws = Jwts.builder().setSubject("test-user")

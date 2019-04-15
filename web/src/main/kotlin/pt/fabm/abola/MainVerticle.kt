@@ -7,6 +7,7 @@ import io.vertx.core.logging.LoggerFactory
 import io.vertx.reactivex.core.AbstractVerticle
 import pt.fabm.abola.dao.LocalCodec
 import pt.fabm.abola.models.Reservation
+import pt.fabm.abola.models.SimpleDate
 import pt.fabm.abola.models.UserRegisterIn
 import pt.fabm.abola.rest.AppException
 import pt.fabm.abola.rest.ParameterType
@@ -25,6 +26,7 @@ class MainVerticle : AbstractVerticle() {
 
   private fun registerCodecs() {
     registerLocalCodec(UserRegisterIn::class.java)
+    registerLocalCodec(SimpleDate::class.java)
     registerLocalCodec(Reservation::class.java)
   }
 
