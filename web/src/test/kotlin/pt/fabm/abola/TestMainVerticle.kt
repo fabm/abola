@@ -1,10 +1,10 @@
 package pt.fabm.abola
 
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.security.Keys
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.web.handler.impl.JjwtAuthHandlerImp
 import io.vertx.junit5.Timeout
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
@@ -20,9 +20,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import pt.fabm.abola.models.Reservation
 import pt.fabm.abola.models.UserRegisterIn
 import pt.fabm.abola.rest.RestVerticle
 import java.security.MessageDigest
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 
@@ -47,10 +49,10 @@ class TestMainVerticle {
           )
         )
       )
-    })) { ar->
-      if(ar.succeeded()){
+    })) { ar ->
+      if (ar.succeeded()) {
         testContext.completeNow()
-      }else{
+      } else {
         testContext.failNow(ar.cause())
       }
     }
@@ -142,13 +144,13 @@ class TestMainVerticle {
         message.reply(null) // ignored message
       }
 
-    ebConsumer.rxCompletionHandler().subscribe ({
+    ebConsumer.rxCompletionHandler().subscribe({
       client.post(port, host, "/api/user/login")
         .rxSendJsonObject(entry)
         .subscribe { response: HttpResponse<Buffer> ->
           testContext.verify {
             val cookie = response.cookies().filter {
-              it.startsWith(HttpHeaders.AUTHORIZATION.toString()+"=")
+              it.startsWith(HttpHeaders.AUTHORIZATION.toString() + "=")
             }
             assertEquals(200, response.statusCode())
             assertEquals(1, cookie.size)
@@ -156,7 +158,45 @@ class TestMainVerticle {
           }
         }
 
-    },{error->
+    }, { error ->
+      testContext.failNow(error)
+    })
+  }
+
+  @Test
+  @DisplayName("Should show the reservation")
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  @Throws(Throwable::class)
+  fun showReservation(vertx: Vertx, testContext: VertxTestContext) {
+
+    val client = WebClient.create(vertx)
+    val eventBus = vertx.eventBus()
+    val reservation = Reservation(
+      LocalDateTime.of(2019, 1, 2, 3, 4),
+      LocalDateTime.of(2019, 1, 2, 3, 5)
+    )
+
+    val jws = Jwts.builder().setSubject("test-user")
+      .signWith(JjwtAuthHandlerImp.KEY)
+      .compact()
+
+    val ebConsumer = eventBus
+      .consumer<Unit?>("test.dao.reservation.get")
+      .handler { message ->
+        message.reply(reservation)
+      }
+
+    ebConsumer.rxCompletionHandler().subscribe({
+      client.get(port, host, "/api/reservation")
+        .bearerTokenAuthentication(jws)
+        .rxSend()
+        .subscribe { response: HttpResponse<Buffer> ->
+          testContext.verify {
+            println(response.body().toString())
+            testContext.completeNow()
+          }
+        }
+    }, { error ->
       testContext.failNow(error)
     })
   }
@@ -167,21 +207,19 @@ class TestMainVerticle {
   @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   @Throws(Throwable::class)
   fun jwtTest(testContext: VertxTestContext) {
-    var key = Keys.hmacShaKeyFor("Between Madonna and the whore when I lay with you".toByteArray())
     val username = "user-name"
     val jws = Jwts.builder().setSubject(username).addClaims(
       mapOf("role" to "watcher")
-    ).signWith(key).compact()
+    ).signWith(JjwtAuthHandlerImp.KEY).compact()
 
     var claims = Jwts.parser().requireSubject(username)
-      .setSigningKey(key)
+      .setSigningKey(JjwtAuthHandlerImp.KEY)
       .parseClaimsJws(jws)
 
     assertEquals("watcher", claims.body["role"])
 
-    key = Keys.hmacShaKeyFor("Between Madonna and the whore when I lay with you".toByteArray())
     claims = Jwts.parser().requireSubject(username)
-      .setSigningKey(key)
+      .setSigningKey(JjwtAuthHandlerImp.KEY)
       .parseClaimsJws(
         "eyJhbGciOiJIUzM4NCJ9" +
           ".eyJzdWIiOiJ1c2VyLW5hbWUiLCJyb2xlIjoid2F0Y2hlciJ9" +

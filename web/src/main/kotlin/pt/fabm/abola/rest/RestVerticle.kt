@@ -25,7 +25,7 @@ class RestVerticle : AbstractVerticle() {
 
     val messageDigest = MessageDigest.getInstance("SHA-512")
     val userService = UserService(vertx) { messageDigest.digest(it.toByteArray()) }
-    val reservationService = ReservationService()
+    val reservationService = ReservationService(vertx)
 
     val jwtAuth = JjwtAuthHandlerImp(AuthProvider { _, resultHandler ->
       resultHandler.handle(Future.succeededFuture())
@@ -36,6 +36,7 @@ class RestVerticle : AbstractVerticle() {
       .method(HttpMethod.POST).handler(userService::userLogin)
     router.route("/api/reservation").handler(AuthHandler.newInstance(jwtAuth)).method(HttpMethod.GET)
       .handler(reservationService::reservationList)
+
     return vertx
       .createHttpServer()
       .requestHandler(router)

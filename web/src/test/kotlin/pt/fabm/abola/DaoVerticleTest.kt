@@ -6,6 +6,7 @@ import io.vertx.core.logging.Logger
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.reactivex.core.AbstractVerticle
 import io.vertx.reactivex.core.eventbus.MessageConsumer
+import pt.fabm.abola.models.Reservation
 import pt.fabm.abola.models.UserRegisterIn
 
 class DaoVerticleTest : AbstractVerticle() {
@@ -14,21 +15,20 @@ class DaoVerticleTest : AbstractVerticle() {
   }
 
   override fun rxStart(): Completable {
-    val consumerUserCreate = messageConsumer<UserRegisterIn>("dao.user.create")
-    val consumerLoginUser = messageConsumer<JsonObject>("dao.user.login")
-    return Completable.concatArray(
-      consumerUserCreate.rxCompletionHandler(),
-      consumerLoginUser.rxCompletionHandler()
+    return Completable.mergeArray(
+      messageConsumer<UserRegisterIn, String>("dao.user.create").rxCompletionHandler(),
+      messageConsumer<JsonObject, String>("dao.user.login").rxCompletionHandler(),
+      messageConsumer<Unit?, Reservation>("dao.reservation.get").rxCompletionHandler()
     )
   }
 
-  private fun <T> messageConsumer(address: String): MessageConsumer<T> {
+  private fun <E, O> messageConsumer(address: String): MessageConsumer<E> {
     val eventBus = vertx.eventBus()
     val consumerUserCreate = eventBus
-      .consumer<T>(address)
+      .consumer<E>(address)
 
     consumerUserCreate.handler { message ->
-      eventBus.rxSend<String>("test.$address", message.body())
+      eventBus.rxSend<O>("test.$address", message.body())
         .subscribe({ fw ->
           message.reply(fw.body())
         }, { error ->

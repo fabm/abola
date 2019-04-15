@@ -6,6 +6,7 @@ import io.vertx.core.logging.Logger
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.reactivex.core.AbstractVerticle
 import pt.fabm.abola.dao.LocalCodec
+import pt.fabm.abola.models.Reservation
 import pt.fabm.abola.models.UserRegisterIn
 import pt.fabm.abola.rest.AppException
 import pt.fabm.abola.rest.ParameterType
@@ -18,12 +19,17 @@ class MainVerticle : AbstractVerticle() {
     val LOGGER: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
   }
 
-  private fun createCodecs() {
-    vertx.eventBus().delegate.registerDefaultCodec(UserRegisterIn::class.java, LocalCodec(UserRegisterIn::class.java))
+  private fun <T>registerLocalCodec(klass:Class<T>){
+    vertx.eventBus().delegate.registerDefaultCodec(klass, LocalCodec(klass))
+  }
+
+  private fun registerCodecs() {
+    registerLocalCodec(UserRegisterIn::class.java)
+    registerLocalCodec(Reservation::class.java)
   }
 
   override fun rxStart(): Completable {
-    createCodecs()
+    registerCodecs()
     return deployVerticles().doOnError { error ->
       when (error) {
         is AppException -> LOGGER.error(error.args.toString(), error)
@@ -39,9 +45,8 @@ class MainVerticle : AbstractVerticle() {
     val confs = config().checkedJsonObject("confs", ParameterType.CONF)
     val restConf = confs.checkedJsonObject("rest", ParameterType.CONF)
 
-    return vertx.rxDeployVerticle(daoVerticle)
-      .flatMap { vertx.rxDeployVerticle(restVerticle, DeploymentOptions().setConfig(restConf)) }
-      .ignoreElement()
+    return vertx.rxDeployVerticle(daoVerticle).ignoreElement()
+      .andThen(vertx.rxDeployVerticle(restVerticle, DeploymentOptions().setConfig(restConf)).ignoreElement())
   }
 
 }
