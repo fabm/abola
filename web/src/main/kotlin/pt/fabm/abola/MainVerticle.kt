@@ -6,13 +6,13 @@ import io.vertx.core.logging.Logger
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.reactivex.core.AbstractVerticle
 import pt.fabm.abola.dao.LocalCodec
+import pt.fabm.abola.extensions.checkedJsonObject
+import pt.fabm.abola.extensions.checkedString
 import pt.fabm.abola.models.Reservation
 import pt.fabm.abola.models.SimpleDate
 import pt.fabm.abola.models.UserRegisterIn
 import pt.fabm.abola.rest.AppException
 import pt.fabm.abola.rest.ParameterType
-import pt.fabm.abola.rest.checkedJsonObject
-import pt.fabm.abola.rest.checkedString
 
 class MainVerticle : AbstractVerticle() {
 
