@@ -26,12 +26,12 @@ subprojects {
     }
 
     task copyIntellijMainResources(type: Copy) {
-      from "${project.buildDir}/main/resources"
+      from "$buildDir/resources/main"
       into "out/production/classes"
     }
 
     task copyIntellijTestResources(type: Copy) {
-      from "${project.buildDir}/test/resources"
+      from "$buildDir/resources/test"
       into "out/test/classes"
     }
 

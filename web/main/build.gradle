@@ -27,9 +27,3 @@ def conf = """{"path":"conf/config.yaml"}"""
 run {
   args = ['run', mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$mainClassName","-conf=$conf", "--on-redeploy=$doOnChange"]
 }
-
-processResources {
-  filter ReplaceTokens, tokens: [
-    "app.key": project.property("app.key")
-  ]
-}
