@@ -43,18 +43,10 @@ class RestVerticle : AbstractVerticle() {
     router.route("/api/user").handler(BodyHandler.create()).method(HttpMethod.POST)
       .handler(userService::createUser)
 
-    bufferResolverH(userService::userLogin)
-
     router.post("/api/user/login")
       .handler(BodyHandler.create())
       .handler(CookieHandler.create())
-      .handler({ rc ->
-        userService.userLogin(rc).subscribe({ restResp ->
-          rc.response().end()
-        }, {
-          LOGGER.error("why", it)
-        })
-      })
+      .handler(bufferResolverH(userService::userLogin))
 
     router.get("/api/reservation")
       .handler(jwt().doOperation(reservationService::reservationList))
@@ -62,7 +54,6 @@ class RestVerticle : AbstractVerticle() {
     router.post("/api/reservation")
       .handler(BodyHandler.create())
       .handler(jwt().doOperation(reservationService::createReservation))
-
 
     return vertx
       .createHttpServer()

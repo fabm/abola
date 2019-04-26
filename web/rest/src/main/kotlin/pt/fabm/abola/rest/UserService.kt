@@ -14,29 +14,34 @@ import pt.fabm.abola.extensions.checkedString
 import pt.fabm.abola.extensions.subscribeRest
 import pt.fabm.abola.models.UserRegisterIn
 
-class UserService(val vertx: Vertx, val toHash: (String) -> ByteArray)  {
+class UserService(val vertx: Vertx, val toHash: (String) -> ByteArray) {
 
   fun userLogin(rc: RoutingContext): Single<RestResponse> {
-    val bodyAsJson = rc.bodyAsJson.checkedJsonObject("body")
-      .let { jo ->
+    val singleBodyAsJson = Single.just(rc)
+      .map { it.bodyAsJson }
+      .map { it.checkedJsonObject("body") }
+      .map { jo ->
         jsonObjectOf(
           "user" to jo["user"],
           "password" to toHash(jo["password"])
         )
       }
 
-    return vertx.eventBus()
-      .rxSend<Buffer>("dao.user.login", bodyAsJson)
-      .map {message->
-        val username = bodyAsJson.getString("user")
-        val jws = Jwts.builder().setSubject(username).signWith(Consts.SIGNING_KEY).compact()
-        val cookie = Cookie.cookie(Consts.ACCESS_TOKEN, jws)
-        rc.addCookie(cookie)
-        message.reply(null)
-        RestResponse(statusCode = 204)
-      }
+    return singleBodyAsJson.flatMap { bodyAsJson ->
+      vertx.eventBus()
+        .rxSend<Buffer>("dao.user.login", bodyAsJson)
+        .map { message ->
+          val username = bodyAsJson.getString("user")
+          val jws = Jwts.builder().setSubject(username).signWith(Consts.SIGNING_KEY).compact()
+          val cookie = Cookie.cookie(Consts.ACCESS_TOKEN, jws)
+          rc.addCookie(cookie)
+          message.reply(null)
+          RestResponse(statusCode = 204)
+        }
+    }
   }
 
+  //TODO change return to a single RestResponse
   fun createUser(rc: RoutingContext) {
     val response = rc.response()
     val bodyAsJson = rc.bodyAsJson.checkedJsonObject("body")
