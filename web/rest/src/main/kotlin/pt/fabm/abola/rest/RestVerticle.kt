@@ -40,12 +40,13 @@ class RestVerticle : AbstractVerticle() {
 
     fun jwt(): JjwtAuthHandler = JjwtAuthHandler(this::bufferResolver)
 
-    router.route("/api/user").handler(BodyHandler.create()).method(HttpMethod.POST)
-      .handler(userService::createUser)
+    router.post("/api/user").handler(BodyHandler.create())
+      .handler(BodyHandler.create())
+      .handler(bufferResolverH(userService::createUser))
 
     router.post("/api/user/login")
-      .handler(BodyHandler.create())
       .handler(CookieHandler.create())
+      .handler(BodyHandler.create())
       .handler(bufferResolverH(userService::userLogin))
 
     router.get("/api/reservation")

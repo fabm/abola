@@ -121,7 +121,7 @@ class TestMainVerticle {
         .rxSendJsonObject(entry)
         .subscribe { response: HttpResponse<Buffer> ->
           testContext.verify {
-            assertEquals(204, response.statusCode())
+            assertEquals(200, response.statusCode())
             testContext.completeNow()
           }
         }
