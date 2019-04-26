@@ -1,0 +1,35 @@
+import org.apache.tools.ant.filters.*
+
+dependencies {
+  implementation project(':web:rest')
+  implementation project(':web:memory-dao')
+  implementation project(':web:shared')
+
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+  implementation "io.vertx:vertx-config:$vertxVersion"
+  implementation "io.vertx:vertx-config-yaml:$vertxVersion"
+  implementation "io.vertx:vertx-core:$vertxVersion"
+  implementation "io.vertx:vertx-rx-java2:$vertxVersion"
+  implementation "io.vertx:vertx-lang-kotlin:$vertxVersion"
+
+  testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+  testImplementation "io.vertx:vertx-web-client:$vertxVersion"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterEngineVersion"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterEngineVersion"
+
+}
+
+def mainVerticleName = 'pt.fabm.abola.abola.MainVerticle'
+def watchForChange = 'src/**/*'
+def doOnChange = './gradlew classes'
+def conf = """{"path":"conf/config.yaml"}"""
+
+run {
+  args = ['run', mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$mainClassName","-conf=$conf", "--on-redeploy=$doOnChange"]
+}
+
+processResources {
+  filter ReplaceTokens, tokens: [
+    "app.key": project.property("app.key")
+  ]
+}
