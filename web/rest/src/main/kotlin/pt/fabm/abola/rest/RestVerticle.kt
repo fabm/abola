@@ -3,10 +3,8 @@ package pt.fabm.abola.rest
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.vertx.core.Handler
-import io.vertx.core.http.HttpMethod
 import io.vertx.core.logging.Logger
 import io.vertx.core.logging.LoggerFactory
-import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.reactivex.core.AbstractVerticle
 import io.vertx.reactivex.core.buffer.Buffer
 import io.vertx.reactivex.core.http.HttpServerResponse
@@ -15,9 +13,12 @@ import io.vertx.reactivex.ext.web.RoutingContext
 import io.vertx.reactivex.ext.web.handler.BodyHandler
 import io.vertx.reactivex.ext.web.handler.CookieHandler
 import io.vertx.reactivex.ext.web.handler.StaticHandler
-import pt.fabm.abola.JjwtAuthHandler
+import pt.fabm.abola.ErrorResponse
 import pt.fabm.abola.extensions.checkedInt
 import pt.fabm.abola.extensions.checkedString
+import pt.fabm.abola.rest.services.ReservationService
+import pt.fabm.abola.rest.services.UserService
+import pt.fabm.abola.validation.JjwtAuthHandler
 import java.security.MessageDigest
 
 class RestVerticle : AbstractVerticle() {
@@ -25,6 +26,9 @@ class RestVerticle : AbstractVerticle() {
   companion object {
     val LOGGER: Logger = LoggerFactory.getLogger(RestVerticle::class.java)
   }
+
+  private fun jwt(): JjwtAuthHandler =
+    JjwtAuthHandler(this::bufferResolver)
 
   override fun rxStart(): Completable {
     val port = config().checkedInt("port")
@@ -35,10 +39,9 @@ class RestVerticle : AbstractVerticle() {
     router.route().handler(webRoot)
 
     val messageDigest = MessageDigest.getInstance("SHA-512")
-    val userService = UserService(vertx) { messageDigest.digest(it.toByteArray()) }
+    val userService = UserService(vertx)
     val reservationService = ReservationService(vertx)
 
-    fun jwt(): JjwtAuthHandler = JjwtAuthHandler(this::bufferResolver)
 
     router.post("/api/user").handler(BodyHandler.create())
       .handler(BodyHandler.create())
@@ -64,26 +67,22 @@ class RestVerticle : AbstractVerticle() {
       .ignoreElement()
   }
 
+
   private fun handleError(response: HttpServerResponse, error: Throwable) {
-    if (error is AppException) {
-      response.statusCode = error.code
-      if (error.args != null) {
-        response.end(Buffer.newInstance(error.args.toBuffer()))
+    when (error) {
+      is ErrorResponse ->
+        error.toRestResponse().handle(response)
+      else -> {
+        LOGGER.error("technical error", error)
+        ErrorResponse.toRestResponse(error,500).handle(response)
       }
-    } else {
-      LOGGER.error("technical error", error)
-      response.statusCode = 500
-      response.end(
-        Buffer.newInstance(
-          jsonObjectOf("message" to error.message).toBuffer()
-        )
-      )
     }
+
   }
 
   private fun bufferResolverH(fn: (RoutingContext) -> Single<RestResponse>): Handler<RoutingContext> {
     return Handler { rc ->
-      fn(rc).subscribe({ it.handle(rc) }, { error ->
+      fn(rc).subscribe({ it.handle(rc.response()) }, { error ->
         handleError(rc.response(), error)
       })
     }

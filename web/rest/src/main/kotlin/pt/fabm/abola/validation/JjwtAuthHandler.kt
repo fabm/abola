@@ -1,4 +1,4 @@
-package pt.fabm.abola
+package pt.fabm.abola.validation
 
 import Consts
 import io.jsonwebtoken.Claims
@@ -14,7 +14,6 @@ import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.reactivex.core.buffer.Buffer
 import io.vertx.reactivex.ext.web.Cookie
 import io.vertx.reactivex.ext.web.RoutingContext
-import pt.fabm.abola.rest.AppException
 
 class JjwtAuthHandler(val bufferResolver: (RoutingContext, Single<Buffer>) -> Unit) : Handler<RoutingContext> {
 
@@ -37,7 +36,7 @@ class JjwtAuthHandler(val bufferResolver: (RoutingContext, Single<Buffer>) -> Un
             .setSigningKey(Consts.SIGNING_KEY)
             .parseClaimsJws(cookie.value)
         } catch (e: Exception) {
-          throw AppException(jsonObjectOf("result" to "login failed"), null, 403)
+          throw AuthException()
         }
       }.flatMap { claims -> operation(claims, rc) }
 

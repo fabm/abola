@@ -1,4 +1,4 @@
-package pt.fabm.abola.rest
+package pt.fabm.abola.rest.services
 
 import Consts
 import io.jsonwebtoken.Jwts
@@ -9,11 +9,12 @@ import io.vertx.reactivex.core.Vertx
 import io.vertx.reactivex.core.buffer.Buffer
 import io.vertx.reactivex.ext.web.Cookie
 import io.vertx.reactivex.ext.web.RoutingContext
-import pt.fabm.abola.extensions.checkedJsonObject
 import pt.fabm.abola.extensions.checkedString
+import pt.fabm.abola.extensions.toHash
 import pt.fabm.abola.models.UserRegisterIn
+import pt.fabm.abola.rest.RestResponse
 
-class UserService(val vertx: Vertx, val toHash: (String) -> ByteArray) {
+class UserService(val vertx: Vertx) {
 
   fun userLogin(rc: RoutingContext): Single<RestResponse> {
     val singleBodyAsJson = Single.just(rc)
@@ -21,14 +22,17 @@ class UserService(val vertx: Vertx, val toHash: (String) -> ByteArray) {
       .map { jo ->
         jsonObjectOf(
           "user" to jo["user"],
-          "password" to toHash(jo["password"])
+          "pass" to (jo.getString("pass").toHash())
         )
       }
 
     return singleBodyAsJson.flatMap { bodyAsJson ->
       vertx.eventBus()
-        .rxSend<Buffer>("dao.user.login", bodyAsJson)
+        .rxSend<Boolean>("dao.user.login", bodyAsJson)
         .map { message ->
+          if(!message.body()){
+            return@map RestResponse(statusCode = 403)
+          }
           val username = bodyAsJson.getString("user")
           val jws = Jwts.builder().setSubject(username).signWith(Consts.SIGNING_KEY).compact()
           val cookie = Cookie.cookie(Consts.ACCESS_TOKEN, jws)
@@ -50,7 +54,7 @@ class UserService(val vertx: Vertx, val toHash: (String) -> ByteArray) {
         val userRegister = UserRegisterIn(
           name,
           email,
-          toHash(password)
+          password.toHash()
         )
 
         vertx.eventBus().rxSend<String>("dao.user.create", userRegister)

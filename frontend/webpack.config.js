@@ -24,7 +24,13 @@ module.exports = {
     inline: true, // Enable watch and live reload
     host: 'localhost',
     port: 8080,
-    stats: 'errors-only'
+    stats: 'errors-only',
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8888',
+        secure: false
+      }
+    }
   },
   module: {
     rules: [

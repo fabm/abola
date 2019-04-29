@@ -12,7 +12,7 @@ import io.vertx.reactivex.core.AbstractVerticle
 import pt.fabm.abola.models.Reservation
 import pt.fabm.abola.models.SimpleDate
 import pt.fabm.abola.models.UserRegisterIn
-import pt.fabm.abola.rest.AppException
+import java.lang.Exception
 
 
 class MainVerticle : AbstractVerticle() {
@@ -45,12 +45,9 @@ class MainVerticle : AbstractVerticle() {
       ConfigRetrieverOptions().addStore(store)
     )
 
-    return retriever.rxGetConfig().flatMapCompletable { jsonObj ->
-      deployVerticles(jsonObj).doOnError { error ->
-        when (error) {
-          is AppException -> LOGGER.error(error.args.toString(), error)
-          else -> LOGGER.error("Generic error", error)
-        }
+    return retriever.rxGetConfig().flatMapCompletable { conf ->
+      deployVerticles(conf).doOnError { error ->
+        LOGGER.error("Verticles load error", Exception(error))
       }
     }
 
@@ -64,7 +61,9 @@ class MainVerticle : AbstractVerticle() {
     val restConf = confs.getJsonObject("rest")
     val daoConf = confs.getJsonObject("dao")
 
-    return vertx.rxDeployVerticle(daoVerticle, DeploymentOptions().setConfig(daoConf)).ignoreElement()
+    return vertx
+      .rxDeployVerticle(daoVerticle, DeploymentOptions().setConfig(daoConf))
+      .ignoreElement()
       .andThen(vertx.rxDeployVerticle(restVerticle, DeploymentOptions().setConfig(restConf)).ignoreElement())
   }
 

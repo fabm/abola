@@ -19,7 +19,7 @@ dependencies {
 
 }
 
-def mainVerticleName = 'pt.fabm.abola.abola.MainVerticle'
+def mainVerticleName = 'pt.fabm.abola.MainVerticle'
 def watchForChange = 'src/**/*'
 def doOnChange = './gradlew classes'
 def conf = """{"path":"conf/config.yaml"}"""

@@ -36,17 +36,21 @@ class MemoryDao : AbstractVerticle() {
     completeHandeleres += eventBus.consumer<UserRegisterIn>("dao.user.create"){ message->
       val body = message.body()
       users[body.name] = body
+      message.reply(null)
     }.rxCompletionHandler()
 
     completeHandeleres += eventBus.consumer<JsonObject>("dao.user.login"){message->
-      val digestPass = { pass: String ->
-        MessageDigest.getInstance("SHA-512").digest(pass.toByteArray())!!
+      val digestPass = { pass: ByteArray ->
+        MessageDigest.getInstance("SHA-512").digest(pass)!!
       }
 
       val body = message.body()
       val current = users.get(body.getString("user"))
 
-      val auth = current?.takeIf { digestPass(body.getString("pass")).contentEquals(it.pass)} !=null
+      val auth = current?.takeIf {
+        val argPass = body.getBinary("pass")
+        argPass.contentEquals(it.pass)
+      } !=null
       message.reply(auth)
     }.rxCompletionHandler()
 

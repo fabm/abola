@@ -1,4 +1,4 @@
-package pt.fabm.abola.rest
+package pt.fabm.abola.rest.services
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jws

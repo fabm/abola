@@ -1,7 +1,16 @@
 import * as React from 'react';
 
-export const HelloWorldComponent = (props : {userName : string}) => {
+interface Props{
+    userName:string;
+    createUser: () => any;
+    login:()=>any;
+}
+
+export const HelloWorldComponent = (props : Props) => {
   return (
-    <h2>Hello Mr. {props.userName} !</h2>
+    <div>
+      <h2 onClick={() => props.createUser()}>Hello Mr. {props.userName} !</h2>
+      <h2 onClick={()=>props.login()}>login</h2>      
+    </div>
   );
 }
