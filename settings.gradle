@@ -1,4 +1,4 @@
-rootProject.name = 'abola'
+rootProject.name = 'template'
 include 'frontend'
 include 'web:rest'
 include 'web:shared'

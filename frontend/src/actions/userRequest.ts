@@ -1,5 +1,6 @@
 import { actionsEnums } from '../common/actionsEnums';
-import { userAPI } from '../api/user';
+import { userAPI } from '../api/userRegister';
+import { UserRegister, UserLogin } from '../reducers/user';
 
 export const userRequestCompleted = () => {
   return {
@@ -12,8 +13,8 @@ export const userLoginCompleted = () => {
   }
 }
 
-export const createUserRequest = () => (dispatcher) => {
-  const promise = userAPI.createUser()
+export const createUserRequest = (userRegister:UserRegister) => (dispatcher) => {
+  const promise = userAPI.createUser(userRegister)
 
   promise.then(
     (data) => dispatcher(userRequestCompleted())
@@ -21,8 +22,8 @@ export const createUserRequest = () => (dispatcher) => {
 
   return promise;
 }
-export const loginRequest = () => (dispatcher) => {
-  const promise = userAPI.doLogin()
+export const loginRequest = (login:UserLogin) => (dispatcher) => {
+  const promise = userAPI.doLogin(login)
 
   promise.then(
     (data) => dispatcher(userLoginCompleted())

@@ -3,6 +3,7 @@ import {State} from '../../reducers';
 
 import {HelloWorldComponent} from './helloWorld';
 import { createUserRequest, loginRequest } from '../../actions/userRequest';
+import { UserRegister } from '../../reducers/user';
 
 const mapStateToProps = (state : State) => {
   return {
@@ -12,8 +13,8 @@ const mapStateToProps = (state : State) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    createUser: () => dispatch(createUserRequest()),
-    login:()=> dispatch(loginRequest())
+    createUser: (userRegister:UserRegister) => dispatch(createUserRequest(userRegister)),
+    loginUser:(login)=> dispatch(loginRequest(login))
   };
 }
 

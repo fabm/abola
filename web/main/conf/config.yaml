@@ -1,6 +1,6 @@
 verticles:
-  dao: pt.fabm.abola.dao.MemoryDao
-  rest: pt.fabm.abola.rest.RestVerticle
+  dao: pt.fabm.template.dao.MemoryDao
+  rest: pt.fabm.template.rest.RestVerticle
 confs:
   rest:
     port: 8888

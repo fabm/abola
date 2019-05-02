@@ -1,4 +1,10 @@
-import org.apache.tools.ant.filters.*
+plugins {
+  id 'application'
+}
+
+application {
+  mainClassName = 'io.vertx.core.Launcher'
+}
 
 dependencies {
   implementation project(':web:rest')
@@ -19,7 +25,16 @@ dependencies {
 
 }
 
-def mainVerticleName = 'pt.fabm.abola.MainVerticle'
+distributions {
+  main {
+    baseName = 'template'
+    contents {
+      from 'conf'
+    }
+  }
+}
+
+def mainVerticleName = 'pt.fabm.template.MainVerticle'
 def watchForChange = 'src/**/*'
 def doOnChange = './gradlew classes'
 def conf = """{"path":"conf/config.yaml"}"""

@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 dependencies {
   implementation project(':web:shared')
   api 'io.jsonwebtoken:jjwt-api:0.10.5'
@@ -13,4 +15,10 @@ dependencies {
   implementation "io.vertx:vertx-web:$vertxVersion"
   implementation "io.vertx:vertx-lang-kotlin:$vertxVersion"
 
+}
+
+processResources {
+  filter ReplaceTokens, tokens: [
+    "app.key": project.property("app.key")
+  ]
 }

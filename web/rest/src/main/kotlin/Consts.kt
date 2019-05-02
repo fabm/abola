@@ -1,10 +1,14 @@
 import io.jsonwebtoken.security.Keys
+import java.util.*
 
 object Consts {
   const val ACCESS_TOKEN = "access_token"
-  const val PASS_PHRASE = "Between Madonna and the whore when I lay with you"
+  val PASS_PHRASE = loadPassPhrase()
   val SIGNING_KEY = Keys.hmacShaKeyFor(PASS_PHRASE.toByteArray())!!
-  object URI {
-    const val RESERVATION = "/api/reservation"
+
+  private fun loadPassPhrase(): String {
+    val props = Properties()
+    props.load(Consts::class.java.getResourceAsStream("/app.properties"))
+    return props.getProperty("key")
   }
 }

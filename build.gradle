@@ -17,7 +17,6 @@ allprojects {
 
 subprojects {
   if (['rest','shared','memory-dao', 'main'].contains(it.name)) {
-    apply plugin: 'application'
     apply plugin: 'org.jetbrains.kotlin.jvm'
 
     repositories {
@@ -34,11 +33,7 @@ subprojects {
       from "$buildDir/resources/test"
       into "out/test/classes"
     }
-
-    application {
-      mainClassName = 'io.vertx.core.Launcher'
-    }
-
+    
     compileKotlin {
       kotlinOptions.jvmTarget = '1.8'
     }

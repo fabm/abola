@@ -2,8 +2,8 @@ package pt.fabm
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import pt.fabm.abola.extensions.passMatches
-import pt.fabm.abola.extensions.toHash
+import pt.fabm.template.extensions.passMatches
+import pt.fabm.template.extensions.toHash
 
 class StringExtensionTest {
 

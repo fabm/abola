@@ -1,6 +1,6 @@
 verticles:
-  dao: pt.fabm.abola.EBForwarderVerticleTest
-  rest: pt.fabm.abola.rest.RestVerticle
+  dao: pt.fabm.template.EBForwarderVerticleTest
+  rest: pt.fabm.template.rest.RestVerticle
 confs:
   rest:
     port: 8888
@@ -12,5 +12,8 @@ confs:
       -  dao.user.login
       -  dao.reservation.list
       -  dao.reservation.create
+      -  dao.car.create
+      -  dao.car.list
+      -  dao.car.retrieve
     codecs:
-      dao.reservation.list: List
+      dao.car.list: List
