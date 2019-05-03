@@ -185,7 +185,7 @@ class TestMainVerticle {
           response.bodyAsJsonObject().also { jsonObject ->
             assertEquals(jsonObjectOf("error" to "Autentication Fails"), jsonObject)
           }
-          assertEquals(403, response.statusCode())
+          assertEquals(401, response.statusCode())
           testContext.completeNow()
         }
       }
@@ -361,31 +361,17 @@ class TestMainVerticle {
 
   @Test
   @DisplayName("Should generate a token")
-  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
-  @Throws(Throwable::class)
-  fun jwtTest(testContext: VertxTestContext) {
+  fun jwtTest() {
     val username = "user-name"
-    val jws = Jwts.builder().setSubject(username).addClaims(
+    val jwsToken = Jwts.builder().setSubject(username).addClaims(
       mapOf("role" to "watcher")
     ).signWith(Consts.SIGNING_KEY).compact()
 
-    var claims = Jwts.parser().requireSubject(username)
+    val claims = Jwts.parser().requireSubject(username)
       .setSigningKey(Consts.SIGNING_KEY)
-      .parseClaimsJws(jws)
+      .parseClaimsJws(jwsToken)
 
     assertEquals("watcher", claims.body["role"])
-
-    claims = Jwts.parser().requireSubject(username)
-      .setSigningKey(Consts.SIGNING_KEY)
-      .parseClaimsJws(
-        "eyJhbGciOiJIUzM4NCJ9" +
-          ".eyJzdWIiOiJ1c2VyLW5hbWUiLCJyb2xlIjoid2F0Y2hlciJ9" +
-          ".XvfvyCUycZ9nA7i7nmLP173peL1ZjYrCpxvPKGAZGHX1wL1jVEJRaTwfR3qQMROt"
-      )
-
-    assertEquals("watcher", claims.body["role"])
-
-    testContext.completeNow()
   }
 
 }

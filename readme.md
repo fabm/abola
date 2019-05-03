@@ -94,7 +94,7 @@ The autentication is made with a custom handler, the handler creates a jwt token
     ``` groovy
     gradle.allprojects{
       if(!project.hasProperty('app.key')){
-          project.ext['app.key'] = 'my pass'
+          project.ext['app.key'] = 'my pass phrase must be long enough to be safe'
       }
     }
     ```
