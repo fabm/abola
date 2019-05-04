@@ -91,6 +91,7 @@ The autentication is made with a custom handler, the handler creates a jwt token
     ./gradlew build -Papp.key=myKeyValue
     ```
 1. or save it in init script
+    
     ``` groovy
     gradle.allprojects{
       if(!project.hasProperty('app.key')){
@@ -98,4 +99,7 @@ The autentication is made with a custom handler, the handler creates a jwt token
       }
     }
     ```
+  
+    By default located at USER_HOME/.gradle/init.gradle if it doesn't exist yet, you can create it
+  
     more about init script [here](https://docs.gradle.org/current/userguide/init_scripts.html) 
