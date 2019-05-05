@@ -53,7 +53,7 @@ class CarController(val vertx: Vertx) {
       .map { message ->
         message.body()?.let {
           RestResponse(it.toJson(), 200)
-        } ?: RestResponse(statusCode = 404)
+        }?: RestResponse(statusCode = 200)
       }
   }
 
@@ -74,7 +74,7 @@ class CarController(val vertx: Vertx) {
         strModel,
         CarMake.values().find { it.name == strMake } ?: throw InvalidEntryException(strMake, "$rootKey.make"),
         price,
-        LocalDate.parse(strMaturityDate, DateTimeFormatter.ISO_DATE)
+        LocalDate.parse(strMaturityDate, DateTimeFormatter.ISO_DATE_TIME)
       )
     } ?: throw RequiredException(rootKey)
     return vertx.eventBus()

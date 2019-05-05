@@ -2,6 +2,10 @@ package pt.fabm.template
 
 import Consts
 import io.jsonwebtoken.Jwts
+import io.reactivex.Maybe
+import io.reactivex.MaybeSource
+import io.reactivex.Single
+import io.reactivex.SingleSource
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.http.HttpHeaders
@@ -374,5 +378,12 @@ class TestMainVerticle {
     assertEquals("watcher", claims.body["role"])
   }
 
+  @Test
+  fun playWithMaybe(){
+    val str:String?=null
+    Maybe.just(str).switchIfEmpty(SingleSource{
+
+    })
+  }
 }
 

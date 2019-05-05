@@ -1,6 +1,7 @@
 package pt.fabm.template.dao
 
 import io.reactivex.Completable
+import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.reactivex.core.AbstractVerticle

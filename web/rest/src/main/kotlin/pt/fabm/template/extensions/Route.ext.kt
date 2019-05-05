@@ -3,10 +3,13 @@ package pt.fabm.template.extensions
 import Consts
 import io.jsonwebtoken.Jwts
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
+import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.SingleSource
 import io.vertx.core.Handler
 import io.vertx.core.http.HttpHeaders
+import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.impl.CookieImpl
 import io.vertx.reactivex.ext.web.Cookie
 import io.vertx.reactivex.ext.web.Route
@@ -20,7 +23,10 @@ import pt.fabm.template.validation.AuthException
 
 typealias ToSingleRestResponse = (RoutingContext) -> Single<RestResponse>
 
+val LOGGER = LoggerFactory.getLogger(Route::class.java)
+
 private fun consumeRest(rc: RoutingContext, restResponse: Single<RestResponse>) {
+
   val response = rc.response()
 
   val applyResponse: (RestResponse) -> Unit = { rest ->
@@ -33,7 +39,10 @@ private fun consumeRest(rc: RoutingContext, restResponse: Single<RestResponse>) 
   }, { error ->
     when (error) {
       is ErrorResponse -> applyResponse(error.toRestResponse())
-      else -> applyResponse(ErrorResponse.toRestResponse(error, 500))
+      else -> {
+        LOGGER.error("technical error",error)
+        applyResponse(ErrorResponse.toRestResponse(error, 500))
+      }
     }
   })
 }
@@ -56,8 +65,11 @@ fun Route.handlerSRR(handler: ToSingleRestResponse): Route {
 fun Route.authHandler(handler: (AuthContext) -> Single<RestResponse>): Route {
   val mainHandler = Handler<RoutingContext> { rc ->
     //get cookie header
-    val singleRestResponse = Observable.just(rc.request().headers().get(HttpHeaders.COOKIE))
+    val singleRestResponse = Single.just(rc)
       //get all cookies
+      .map {
+        it.request().headers().get(HttpHeaders.COOKIE) ?: throw AuthException()
+      }.toObservable()
       .flatMapIterable { cookieHeader -> ServerCookieDecoder.STRICT.decode(cookieHeader) }
       //transform netty cookies in vertx cookies
       .map { cookie -> Cookie.newInstance(CookieImpl(cookie)) }

@@ -13,7 +13,7 @@ import pt.fabm.template.extensions.toHash
 import pt.fabm.template.models.UserRegisterIn
 import pt.fabm.template.rest.RestResponse
 
-class UserService(val vertx: Vertx) {
+class UserController(val vertx: Vertx) {
 
   fun userLogin(rc: RoutingContext): Single<RestResponse> {
     val singleBodyAsJson = Single.just(rc)
@@ -35,6 +35,8 @@ class UserService(val vertx: Vertx) {
           val username = bodyAsJson.getString("user")
           val jws = Jwts.builder().setSubject(username).signWith(Consts.SIGNING_KEY).compact()
           val cookie = Cookie.cookie(Consts.ACCESS_TOKEN, jws)
+          cookie.setHttpOnly(true)
+          cookie.setPath("/api/")
           rc.addCookie(cookie)
           message.reply(null)
           RestResponse(statusCode = 200)
@@ -57,7 +59,9 @@ class UserService(val vertx: Vertx) {
         )
 
         vertx.eventBus().rxSend<String>("dao.user.create", userRegister)
-          .map { RestResponse(statusCode = 200) }
+          .map {
+            RestResponse(statusCode = 200)
+          }
       }
   }
 
