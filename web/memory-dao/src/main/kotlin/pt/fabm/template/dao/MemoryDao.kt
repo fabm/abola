@@ -5,7 +5,7 @@ import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.reactivex.core.AbstractVerticle
-import pt.fabm.template.models.Reservation
+import pt.fabm.template.models.Car
 import pt.fabm.template.models.UserRegisterIn
 import java.security.MessageDigest
 
@@ -14,7 +14,7 @@ class MemoryDao : AbstractVerticle() {
     val LOGGER = LoggerFactory.getLogger(MemoryDao::class.java)
   }
 
-  private val reservations = mutableListOf<Reservation>()
+  private val cars = mutableListOf<Car>()
   private val users = mutableMapOf<String, UserRegisterIn>()
 
   override fun rxStart(): Completable {
@@ -25,13 +25,13 @@ class MemoryDao : AbstractVerticle() {
     val eventBus = vertx.eventBus()
     val completeHandeleres = mutableListOf<Completable>()
 
-    completeHandeleres += eventBus.consumer<Reservation>("dao.reservation.create"){ message->
-      reservations += message.body()
+    completeHandeleres += eventBus.consumer<Car>("dao.car.create"){ message->
+      cars += message.body()
       message.reply(null)
     }.rxCompletionHandler()
 
-    completeHandeleres += eventBus.consumer<List<Reservation>>("dao.reservation.list"){ message->
-      message.reply(reservations)
+    completeHandeleres += eventBus.consumer<List<Car>>("dao.car.list"){ message->
+      message.reply(cars, DeliveryOptions().setCodecName("List"))
     }.rxCompletionHandler()
 
     completeHandeleres += eventBus.consumer<UserRegisterIn>("dao.user.create"){ message->
@@ -41,10 +41,6 @@ class MemoryDao : AbstractVerticle() {
     }.rxCompletionHandler()
 
     completeHandeleres += eventBus.consumer<JsonObject>("dao.user.login"){message->
-      val digestPass = { pass: ByteArray ->
-        MessageDigest.getInstance("SHA-512").digest(pass)!!
-      }
-
       val body = message.body()
       val current = users.get(body.getString("user"))
 
