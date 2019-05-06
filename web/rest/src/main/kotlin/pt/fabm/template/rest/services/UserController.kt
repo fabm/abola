@@ -14,6 +14,10 @@ import pt.fabm.template.models.UserRegisterIn
 import pt.fabm.template.rest.RestResponse
 
 class UserController(val vertx: Vertx) {
+  fun userLogout(rc: RoutingContext): Single<RestResponse> {
+    rc.getCookie(Consts.ACCESS_TOKEN)?.setPath("/api/")?.setMaxAge(0L)
+    return Single.just(RestResponse())
+  }
 
   fun userLogin(rc: RoutingContext): Single<RestResponse> {
     val singleBodyAsJson = Single.just(rc)
@@ -29,7 +33,7 @@ class UserController(val vertx: Vertx) {
       vertx.eventBus()
         .rxSend<Boolean>("dao.user.login", bodyAsJson)
         .map { message ->
-          if(!message.body()){
+          if (!message.body()) {
             return@map RestResponse(statusCode = 403)
           }
           val username = bodyAsJson.getString("user")

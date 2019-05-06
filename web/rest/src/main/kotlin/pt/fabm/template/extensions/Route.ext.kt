@@ -3,10 +3,7 @@ package pt.fabm.template.extensions
 import Consts
 import io.jsonwebtoken.Jwts
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
-import io.reactivex.Maybe
-import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.SingleSource
 import io.vertx.core.Handler
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.logging.LoggerFactory
@@ -20,6 +17,7 @@ import pt.fabm.template.ErrorResponse
 import pt.fabm.template.rest.RestResponse
 import pt.fabm.template.validation.AuthContext
 import pt.fabm.template.validation.AuthException
+import kotlin.Function as Function1001
 
 typealias ToSingleRestResponse = (RoutingContext) -> Single<RestResponse>
 
@@ -40,7 +38,7 @@ private fun consumeRest(rc: RoutingContext, restResponse: Single<RestResponse>) 
     when (error) {
       is ErrorResponse -> applyResponse(error.toRestResponse())
       else -> {
-        LOGGER.error("technical error",error)
+        LOGGER.error("technical error", error)
         applyResponse(ErrorResponse.toRestResponse(error, 500))
       }
     }
@@ -55,9 +53,13 @@ fun Route.withCookies(): Route {
   return this.handler(CookieHandler.create())
 }
 
+/**
+ * handle single rest response
+ */
 fun Route.handlerSRR(handler: ToSingleRestResponse): Route {
+
   val mainHandler = Handler<RoutingContext> { rc ->
-    consumeRest(rc, handler(rc))
+    consumeRest(rc, Single.just(rc).flatMap(handler))
   }
   return this.handler(mainHandler)
 }

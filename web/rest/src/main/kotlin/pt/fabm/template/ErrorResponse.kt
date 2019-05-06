@@ -8,7 +8,7 @@ interface ErrorResponse {
   companion object {
     fun toRestResponse(message: String?, statusCode: Int): RestResponse {
       return RestResponse(
-        Buffer.newInstance(JsonObject().put("error", message!!).toBuffer()),
+        Buffer.newInstance(JsonObject().put("error", message).toBuffer()),
         statusCode
       )
     }

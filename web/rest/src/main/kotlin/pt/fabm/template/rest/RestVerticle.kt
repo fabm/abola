@@ -8,6 +8,7 @@ import io.vertx.reactivex.core.AbstractVerticle
 import io.vertx.reactivex.core.buffer.Buffer
 import io.vertx.reactivex.ext.web.Cookie
 import io.vertx.reactivex.ext.web.Router
+import io.vertx.reactivex.ext.web.RoutingContext
 import io.vertx.reactivex.ext.web.handler.CookieHandler
 import io.vertx.reactivex.ext.web.handler.StaticHandler
 import pt.fabm.template.extensions.*
@@ -31,17 +32,30 @@ class RestVerticle : AbstractVerticle() {
     val userService = UserController(vertx)
     val carController = CarController(vertx)
 
+
+    //trace
+    router.route().handler {
+      LOGGER.info("path:${it.normalisedPath()}")
+      it.next()
+    }
+
     router.post("/api/user").withBody().handlerSRR(userService::createUser)
     router.post("/api/user/login").withCookies().withBody().handlerSRR(userService::userLogin)
+    router.get("/api/user/logout").withCookies().handlerSRR (userService::userLogout)
     router.get("/api/car").handlerSRR(carController::getCar)
     router.get("/api/car/list").handlerSRR { carController.carList() }
     router.post("/api/car").withBody().authHandler { carController.createCar(it.rc) }
 
-    router.get("/xxx").handler(CookieHandler.create())
-    router.get("/xxx").handler {
-      val bla = Cookie.cookie("my_cookie", "blabla")
-      it.addCookie(bla)
-      it.response().end(JsonObject().put("hello","world").let { Buffer.newInstance(it.toBuffer()) })
+    router.route().handler {
+      if(!it.response().ended()){
+        LOGGER.error("Attention, not ended route")
+        it.response().end()
+      }
+    }
+
+    router.route().failureHandler{
+      LOGGER.error("failure",it.failure())
+      it.response().end("oh no!")
     }
 
     return vertx

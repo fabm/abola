@@ -4,15 +4,14 @@ import * as React from "react";
 import { observer } from "mobx-react";
 import classNames from "classnames/bind";
 import { ObservableArray } from "mobx/lib/internal";
-import axios from 'axios';
-
+import axios from "axios";
 
 mobx.configure({ enforceActions: "observed" }); // don't allow state modifications outside actions
 
-interface User{
-  username:string;
-  password:string;
-  email?:string;
+interface User {
+  username: string;
+  password: string;
+  email?: string;
 }
 
 let registerUser = (user: User): Promise<any> => {
@@ -20,7 +19,7 @@ let registerUser = (user: User): Promise<any> => {
     name: user.username,
     email: user.email,
     password: user.password
-  }
+  };
   return fetch("api/user", { method: "POST", body: JSON.stringify(body) }).then(
     res => res.text()
   );
@@ -30,13 +29,18 @@ let userLogin = (user: User): Promise<any> => {
   let body = {
     user: user.username,
     pass: user.password
-  }
-  return fetch("api/user/login", { method: "POST", body: JSON.stringify(body) }).then(
-    res => res.text()
-  );
+  };
+  return fetch("api/user/login", {
+    method: "POST",
+    body: JSON.stringify(body)
+  }).then(res => res.text());
 };
 
-class UserStore{
+let userLogout = ():Promise<any> => {
+  return axios.get("/api/user/logout");
+};
+
+class UserStore {
   @observable user;
 }
 
@@ -49,12 +53,13 @@ interface Car {
   make: string;
   model?: string;
   maturityDate?: string;
-  price?:number;
+  price?: number;
 }
 
 let createCar = (car: Car): Promise<any> => {
-  return axios.post("api/car", car, {withCredentials: true})
-  .then(res => res.data)
+  return axios
+    .post("api/car", car, { withCredentials: true })
+    .then(res => res.data);
 };
 
 let getCar = (car: Car): Promise<any> => {
@@ -76,9 +81,10 @@ class CarStore {
   };
   @observable state = "pending";
   @observable dropDownOpen: boolean = false;
+  
   @action
-  updateDropDown() {
-    this.dropDownOpen = !this.dropDownOpen;
+  updateDropDown(state:boolean) {
+    this.dropDownOpen = state;
   }
 
   @action
@@ -119,8 +125,10 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
       { "dropdown-menu": true },
       { show: store.dropDownOpen }
     );
-    let labelsCount:number = (Object.keys(MAKERS).length/2);
-    let makerLabels:string[] = [...Array(labelsCount).keys()].map(key=>MAKERS[key]);
+    let labelsCount: number = Object.keys(MAKERS).length / 2;
+    let makerLabels: string[] = [...Array(labelsCount).keys()].map(
+      key => MAKERS[key]
+    );
 
     return (
       <div>
@@ -139,7 +147,10 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
               aria-haspopup="true"
               aria-expanded="false"
               onClick={() => {
-                store.updateDropDown();
+                store.updateDropDown(!store.dropDownOpen);
+              }}
+              onBlur={()=>{
+                store.updateDropDown(false);
               }}
             >
               Choose maker...
@@ -150,8 +161,8 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
                   <a
                     key={maker}
                     onClick={() => {
+                      store.updateDropDown(false);
                       store.updateDetailMake(maker);
-                      store.updateDropDown();
                     }}
                     className="dropdown-item"
                     href="#"
@@ -176,6 +187,13 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
           onClick={() => store.saveCar()}
         >
           save car
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => userLogout()}
+        >
+          logout
         </button>
       </div>
     );
@@ -215,23 +233,23 @@ export const App = () => {
   );
 };
 
-
-
 // To test api
-window['test.api'] = {
-  registerUser : registerUser,
+window["test.api"] = {
+  registerUser: registerUser,
   login: userLogin,
   createCar: createCar
-}
+};
 
-registerUser({"username":"xico","email":"xico@guarda.pt", "password":"xpto"});
-userLogin({"username":"xico", "password":"xpto"});
+registerUser({ username: "xico", email: "xico@guarda.pt", password: "xpto" });
+userLogin({ username: "xico", password: "xpto" });
 
-setTimeout(()=>{
-  window['test.api'].createCar({
-    make:"VOLKSWAGEN",
-    model:"golf 5",
-    maturityDate:"2019-05-05T20:13:42",
-    price:280000
-  })
-},3000);
+setTimeout(() => {
+  window["test.api"]
+    .createCar({
+      make: "VOLKSWAGEN",
+      model: "golf 5",
+      maturityDate: "2019-05-05T20:13:42",
+      price: 280000
+    })
+    .then(x => {});
+}, 3000);
