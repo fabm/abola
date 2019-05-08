@@ -3,126 +3,13 @@ import { flow, observable, action } from "mobx";
 import * as React from "react";
 import { observer } from "mobx-react";
 import classNames from "classnames/bind";
-import { ObservableArray } from "mobx/lib/internal";
 import axios from "axios";
+import { Car,MAKERS } from "./model/Car";
+import { carService } from "./services/CarService";
+import { userService } from "./services/UserService";
+import { CarStore } from "./stores/CarStore";
 
 mobx.configure({ enforceActions: "observed" }); // don't allow state modifications outside actions
-
-interface User {
-  username: string;
-  password: string;
-  email?: string;
-}
-
-let registerUser = (user: User): Promise<any> => {
-  let body = {
-    name: user.username,
-    email: user.email,
-    password: user.password
-  };
-  return fetch("api/user", { method: "POST", body: JSON.stringify(body) }).then(
-    res => res.text()
-  );
-};
-
-let userLogin = (user: User): Promise<any> => {
-  let body = {
-    user: user.username,
-    pass: user.password
-  };
-  return fetch("api/user/login", {
-    method: "POST",
-    body: JSON.stringify(body)
-  }).then(res => res.text());
-};
-
-let userLogout = (): Promise<any> => {
-  return axios.get("/api/user/logout");
-};
-
-class UserStore {
-  @observable user;
-}
-
-enum MAKERS {
-  VOLKSVAGEN,
-  RENAULT
-}
-
-interface Car {
-  make: string;
-  model?: string;
-  maturityDate?: string;
-  price?: number;
-}
-
-let createCar = (car: Car): Promise<any> => {
-  return axios
-    .post("api/car", car, { withCredentials: true })
-    .then(res => res.data);
-};
-
-let getCar = (car: Car): Promise<any> => {
-  return fetch("api/car", { method: "POST", body: JSON.stringify(car) }).then(
-    res => res.json()
-  );
-};
-
-let fetchCars = (): Promise<Car[]> => {
-  return fetch("api/car/list").then(res => res.json());
-};
-
-
-class CarStore {
-  @observable cars: Car[] = [];
-  @observable detail: Car = {
-    make: "",
-    model: "",
-    maturityDate: ""
-  };
-  @observable state = "pending";
-  @observable dropDownOpen: boolean = false;
-
-  @action
-  updateDropDown(state: boolean) {
-    this.dropDownOpen = state;
-  }
-
-  @action
-  updateDropDownAndClose(make: string) {
-    this.detail = { ...this.detail, make };
-    this.dropDownOpen = false;
-  }
-
-  @action
-  updateDetailMake(value: string) {
-    this.detail.make = value;
-  }
-
-  saveCar() {
-    console.log(JSON.stringify(this.detail));
-  }
-
-  fetchCars = flow(function* () {
-    this.state = "pending";
-    try {
-      const cars = yield fetchCars();
-      this.state = "done";
-      this.cars = cars;
-    } catch (error) {
-      this.state = "error";
-      console.error(error);
-    }
-  });
-}
-
-@observer
-class CarView extends React.Component<{ car: Car }, any> {
-  render() {
-    const car = this.props.car;
-    return <div>{car.make}</div>;
-  }
-}
 
 let DropDownButton = (store: CarStore) => {
   return <button
@@ -144,6 +31,15 @@ let DropDownButton = (store: CarStore) => {
 }
 
 @observer
+class CarView extends React.Component<{ car: Car }, any> {
+  render() {
+    const car = this.props.car;
+    return <div>{car.make}</div>;
+  }
+}
+
+
+@observer
 class CarEditor extends React.Component<{ store: CarStore }, any> {
   render() {
     const store = this.props.store;
@@ -162,7 +58,11 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
           <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maturity date</label>
         </div>
         <div className="col-6">
-          <input className="form-control" type="datetime-local" value="2011-08-19T13:45:00" id="example-datetime-local-input" />
+          <input className="form-control" type="datetime-local" id="example-datetime-local-input" onChange={(event)=>{
+            console.log(new Date(event.target.value).getTime());
+            console.log(new Date().getTime());
+            store.updateMaturityDate(event.target.value);
+          }} />
         </div>
         <div className="form-group row">
           <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Model</label>
@@ -217,7 +117,7 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
         <button
           type="button"
           className="btn btn-primary"
-          onClick={() => userLogout()}
+          onClick={() => userService.userLogout()}
         >
           logout
         </button>
@@ -261,13 +161,13 @@ export const App = () => {
 
 // To test api
 window["test.api"] = {
-  registerUser: registerUser,
-  login: userLogin,
-  createCar: createCar
+  registerUser: userService.registerUser,
+  login: userService.userLogin,
+  createCar: carService.createCar
 };
 
-registerUser({ username: "xico", email: "xico@guarda.pt", password: "xpto" });
-userLogin({ username: "xico", password: "xpto" });
+userService.registerUser({ username: "xico", email: "xico@guarda.pt", password: "xpto" });
+userService.userLogin({ username: "xico", password: "xpto" });
 
 setTimeout(() => {
   window["test.api"]
@@ -279,3 +179,6 @@ setTimeout(() => {
     })
     .then(x => { });
 }, 3000);
+
+
+console.log(MAKERS[MAKERS.VOLKSVAGEN]);
