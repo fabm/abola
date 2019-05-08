@@ -36,7 +36,7 @@ let userLogin = (user: User): Promise<any> => {
   }).then(res => res.text());
 };
 
-let userLogout = ():Promise<any> => {
+let userLogout = (): Promise<any> => {
   return axios.get("/api/user/logout");
 };
 
@@ -72,6 +72,7 @@ let fetchCars = (): Promise<Car[]> => {
   return fetch("api/car/list").then(res => res.json());
 };
 
+
 class CarStore {
   @observable cars: Car[] = [];
   @observable detail: Car = {
@@ -81,10 +82,16 @@ class CarStore {
   };
   @observable state = "pending";
   @observable dropDownOpen: boolean = false;
-  
+
   @action
-  updateDropDown(state:boolean) {
+  updateDropDown(state: boolean) {
     this.dropDownOpen = state;
+  }
+
+  @action
+  updateDropDownAndClose(make: string) {
+    this.detail = { ...this.detail, make };
+    this.dropDownOpen = false;
   }
 
   @action
@@ -96,7 +103,7 @@ class CarStore {
     console.log(JSON.stringify(this.detail));
   }
 
-  fetchCars = flow(function*() {
+  fetchCars = flow(function* () {
     this.state = "pending";
     try {
       const cars = yield fetchCars();
@@ -117,6 +124,25 @@ class CarView extends React.Component<{ car: Car }, any> {
   }
 }
 
+let DropDownButton = (store: CarStore) => {
+  return <button
+    className="btn btn-outline-secondary dropdown-toggle"
+    type="button"
+    data-toggle="dropdown"
+    aria-haspopup="true"
+    aria-expanded="false"
+    onClick={() => {
+      store.updateDropDown(!store.dropDownOpen);
+    }}
+    onBlur={(event) => {
+      store.updateDropDown(false);
+    }}
+  >
+    Choose maker...
+</button>
+
+}
+
 @observer
 class CarEditor extends React.Component<{ store: CarStore }, any> {
   render() {
@@ -131,55 +157,55 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
     );
 
     return (
-      <div>
-        <input
-          type="text"
-          onChange={cmp => store.updateDetailMake(cmp.target.value)}
-        />
-        <div>value: {store.detail.make}</div>
-
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <button
-              className="btn btn-outline-secondary dropdown-toggle"
-              type="button"
-              data-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false"
-              onClick={() => {
-                store.updateDropDown(!store.dropDownOpen);
-              }}
-              onBlur={()=>{
-                store.updateDropDown(false);
-              }}
-            >
-              Choose maker...
-            </button>
-            <div className={classes}>
-              {makerLabels.map(maker => {
-                return (
-                  <a
-                    key={maker}
-                    onClick={() => {
-                      store.updateDropDown(false);
-                      store.updateDetailMake(maker);
-                    }}
-                    className="dropdown-item"
-                    href="#"
-                  >
-                    {maker}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
+      <div className="col-12">
+        <div className="form-group row">
+          <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maturity date</label>
+        </div>
+        <div className="col-6">
+          <input className="form-control" type="datetime-local" value="2011-08-19T13:45:00" id="example-datetime-local-input" />
+        </div>
+        <div className="form-group row">
+          <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Model</label>
+        </div>
+        <div className="col-6">
           <input
             type="text"
-            className="form-control"
-            aria-label="Text input with dropdown button"
-            value={store.detail.make}
-            disabled
+            onChange={cmp => store.updateDetailMake(cmp.target.value)}
           />
+        </div>
+        <div className="form-group row">
+          <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maker</label>
+        </div>
+        <div className="col-6">
+          <div className="input-group mb-3">
+            <div className="input-group-prepend">
+              {DropDownButton(store)}
+              <div className={classes}>
+                {makerLabels.map(maker => {
+                  return (
+                    <a
+                      key={maker}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={(event) => {
+                        store.updateDropDownAndClose(maker);
+                      }}
+                      className="dropdown-item"
+                      href="#"
+                    >
+                      {maker}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+            <input
+              type="text"
+              className="form-control"
+              aria-label="Text input with dropdown button"
+              value={store.detail.make}
+              disabled
+            />
+          </div>
         </div>
         <button
           type="button"
@@ -251,5 +277,5 @@ setTimeout(() => {
       maturityDate: "2019-05-05T20:13:42",
       price: 280000
     })
-    .then(x => {});
+    .then(x => { });
 }, 3000);

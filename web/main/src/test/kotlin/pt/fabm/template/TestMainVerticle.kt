@@ -378,12 +378,5 @@ class TestMainVerticle {
     assertEquals("watcher", claims.body["role"])
   }
 
-  @Test
-  fun playWithMaybe(){
-    val str:String?=null
-    Maybe.just(str).switchIfEmpty(SingleSource{
-
-    })
-  }
 }
 

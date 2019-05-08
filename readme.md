@@ -41,7 +41,7 @@ To launch the application in one IDE like Intellij for instance we need to confi
 Example:
 
 ![Image of Launcher screenshot](docimg/launcher.png)
-
+parameters: run pt.fabm.template.MainVerticle -conf="{\\"path\\":\\"conf/config.yaml\\"}"
 # rest module
 Module to publish the services, *dao* is called within, through the event bus calls
 

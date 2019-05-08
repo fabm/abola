@@ -34,27 +34,34 @@ class RestVerticle : AbstractVerticle() {
 
 
     //trace
-    router.route().handler {
-      LOGGER.info("path:${it.normalisedPath()}")
-      it.next()
+    router.route().handler { rc->
+      LOGGER.info("start:${rc.normalisedPath()}")
+      rc.addBodyEndHandler{
+        LOGGER.info("end:${rc.normalisedPath()}")
+      }
+      rc.next()
     }
 
     router.post("/api/user").withBody().handlerSRR(userService::createUser)
     router.post("/api/user/login").withCookies().withBody().handlerSRR(userService::userLogin)
-    router.get("/api/user/logout").withCookies().handlerSRR (userService::userLogout)
+    router.get("/api/user/logout").withCookies().handlerSRR(userService::userLogout)
     router.get("/api/car").handlerSRR(carController::getCar)
     router.get("/api/car/list").handlerSRR { carController.carList() }
     router.post("/api/car").withBody().authHandler { carController.createCar(it.rc) }
 
+
+
     router.route().handler {
-      if(!it.response().ended()){
+      if (!it.response().ended()) {
         LOGGER.error("Attention, not ended route")
         it.response().end()
+      } else {
+        LOGGER.info("end:${it.normalisedPath()}")
       }
     }
 
-    router.route().failureHandler{
-      LOGGER.error("failure",it.failure())
+    router.route().failureHandler {
+      LOGGER.error("failure", it.failure())
       it.response().end("oh no!")
     }
 
