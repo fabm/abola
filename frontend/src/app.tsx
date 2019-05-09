@@ -3,32 +3,33 @@ import { flow, observable, action } from "mobx";
 import * as React from "react";
 import { observer } from "mobx-react";
 import classNames from "classnames/bind";
-import axios from "axios";
-import { Car,MAKERS } from "./model/Car";
+import { Car, MAKERS } from "./model/Car";
 import { carService } from "./services/CarService";
 import { userService } from "./services/UserService";
 import { CarStore } from "./stores/CarStore";
+import { DropDownInput } from "./components/general/DropDownInput";
 
 mobx.configure({ enforceActions: "observed" }); // don't allow state modifications outside actions
 
-let DropDownButton = (store: CarStore) => {
-  return <button
-    className="btn btn-outline-secondary dropdown-toggle"
-    type="button"
-    data-toggle="dropdown"
-    aria-haspopup="true"
-    aria-expanded="false"
-    onClick={() => {
-      store.updateDropDown(!store.dropDownOpen);
-    }}
-    onBlur={(event) => {
-      store.updateDropDown(false);
-    }}
-  >
-    Choose maker...
-</button>
+const readableMaker = (maker: MAKERS): string => MAKERS[maker]
 
+const MakeComponent: React.FunctionComponent<{ store: CarStore }> = (props) => {
+  return <h1>Make, {readableMaker(props.store.detail.make)}</h1>;
 }
+
+const DropDownButton: React.FunctionComponent<{ store: CarStore }> = (props) => <button
+  className="btn btn-outline-secondary dropdown-toggle"
+  type="button"
+  data-toggle="dropdown"
+  aria-haspopup="true"
+  aria-expanded="false"
+  onClick={() => {
+    props.store.updateDropDown(!props.store.dropDownOpen);
+  }}
+  onBlur={(event) => {
+    props.store.updateDropDown(false);
+  }}
+>Choose maker...</button>
 
 @observer
 class CarView extends React.Component<{ car: Car }, any> {
@@ -58,9 +59,7 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
           <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maturity date</label>
         </div>
         <div className="col-6">
-          <input className="form-control" type="datetime-local" id="example-datetime-local-input" onChange={(event)=>{
-            console.log(new Date(event.target.value).getTime());
-            console.log(new Date().getTime());
+          <input className="form-control" type="datetime-local" id="example-datetime-local-input" onChange={(event) => {
             store.updateMaturityDate(event.target.value);
           }} />
         </div>
@@ -70,7 +69,9 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
         <div className="col-6">
           <input
             type="text"
-            onChange={cmp => store.updateDetailMake(cmp.target.value)}
+            onChange={cmp =>
+              store.updateDetailMake(cmp.target.value)
+            }
           />
         </div>
         <div className="form-group row">
@@ -79,7 +80,7 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
         <div className="col-6">
           <div className="input-group mb-3">
             <div className="input-group-prepend">
-              {DropDownButton(store)}
+              <DropDownButton store={store} />
               <div className={classes}>
                 {makerLabels.map(maker => {
                   return (
@@ -102,11 +103,12 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
               type="text"
               className="form-control"
               aria-label="Text input with dropdown button"
-              value={store.detail.make}
+              value={store.detail.make == null ? "" : MAKERS[store.detail.make]}
               disabled
             />
           </div>
         </div>
+        <DropDownInput current={store.detail.make} element={MAKERS} updateValue={()=>{}}/>
         <button
           type="button"
           className="btn btn-primary"
@@ -118,18 +120,16 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
           type="button"
           className="btn btn-primary"
           onClick={() => userService.userLogout()}
-        >
-          logout
-        </button>
+        >logout</button>
       </div>
     );
   }
 }
 
 @observer
-class CarsList extends React.Component<{ store: CarStore }, any> {
+class CarsList extends React.Component<{ stores: { carStore: CarStore } }, any> {
   render() {
-    const store = this.props.store;
+    const store = this.props.stores.carStore;
     return (
       <div>
         <ul>
@@ -153,7 +153,7 @@ const carStore = new CarStore();
 export const App = () => {
   return (
     <div>
-      <CarsList store={carStore} />
+      <CarsList stores={{ carStore: carStore }} />
       <CarEditor store={carStore} />
     </div>
   );
@@ -179,6 +179,3 @@ setTimeout(() => {
     })
     .then(x => { });
 }, 3000);
-
-
-console.log(MAKERS[MAKERS.VOLKSVAGEN]);
