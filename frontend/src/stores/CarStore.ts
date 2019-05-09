@@ -2,6 +2,7 @@ import { observable, action, flow } from "mobx";
 import { Car, MAKERS } from "../model/Car";
 import { carService } from "../services/CarService";
 import { observer } from "mobx-react";
+import { number } from "prop-types";
 
 export class CarStore {
     @observable cars: Car[] = [];
@@ -29,8 +30,8 @@ export class CarStore {
     }
   
     @action
-    updateDetailMake(value: string) {
-      this.detail.make = MAKERS[value];
+    updateDetailMake(value: number) {
+      this.detail.make = value;
     }
   
     saveCar() {

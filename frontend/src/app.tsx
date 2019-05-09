@@ -66,49 +66,17 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
         <div className="form-group row">
           <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Model</label>
         </div>
-        <div className="col-6">
-          <input
-            type="text"
-            onChange={cmp =>
-              store.updateDetailMake(cmp.target.value)
-            }
-          />
-        </div>
         <div className="form-group row">
           <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maker</label>
         </div>
-        <div className="col-6">
-          <div className="input-group mb-3">
-            <div className="input-group-prepend">
-              <DropDownButton store={store} />
-              <div className={classes}>
-                {makerLabels.map(maker => {
-                  return (
-                    <a
-                      key={maker}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={(event) => {
-                        store.updateDropDownAndClose(maker);
-                      }}
-                      className="dropdown-item"
-                      href="#"
-                    >
-                      {maker}
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-            <input
-              type="text"
-              className="form-control"
-              aria-label="Text input with dropdown button"
-              value={store.detail.make == null ? "" : MAKERS[store.detail.make]}
-              disabled
-            />
-          </div>
-        </div>
-        <DropDownInput current={store.detail.make} element={MAKERS} updateValue={()=>{}}/>
+
+        <DropDownInput
+          current={store.detail.make}
+          element={MAKERS}
+          updateValue={(make) => store.updateDetailMake(make)}
+          isOpen={store.dropDownOpen}
+          updateState={(state) => store.updateDropDown(state)}
+        />
         <button
           type="button"
           className="btn btn-primary"
