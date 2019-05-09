@@ -72,7 +72,9 @@ class CarController(val vertx: Vertx) {
 
       return@let Car(
         strModel,
-        CarMake.values().find { it.name == strMake } ?: throw InvalidEntryException(strMake, "$rootKey.make"),
+        CarMake.values().find {
+          it.name.equals(strMake)
+        } ?: throw InvalidEntryException(strMake, "$rootKey.make"),
         price,
         LocalDate.parse(strMaturityDate, DateTimeFormatter.ISO_DATE_TIME)
       )

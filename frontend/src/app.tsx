@@ -11,26 +11,6 @@ import { DropDownInput } from "./components/general/DropDownInput";
 
 mobx.configure({ enforceActions: "observed" }); // don't allow state modifications outside actions
 
-const readableMaker = (maker: MAKERS): string => MAKERS[maker]
-
-const MakeComponent: React.FunctionComponent<{ store: CarStore }> = (props) => {
-  return <h1>Make, {readableMaker(props.store.detail.make)}</h1>;
-}
-
-const DropDownButton: React.FunctionComponent<{ store: CarStore }> = (props) => <button
-  className="btn btn-outline-secondary dropdown-toggle"
-  type="button"
-  data-toggle="dropdown"
-  aria-haspopup="true"
-  aria-expanded="false"
-  onClick={() => {
-    props.store.updateDropDown(!props.store.dropDownOpen);
-  }}
-  onBlur={(event) => {
-    props.store.updateDropDown(false);
-  }}
->Choose maker...</button>
-
 @observer
 class CarView extends React.Component<{ car: Car }, any> {
   render() {
@@ -39,34 +19,37 @@ class CarView extends React.Component<{ car: Car }, any> {
   }
 }
 
-
 @observer
 class CarEditor extends React.Component<{ store: CarStore }, any> {
   render() {
     const store = this.props.store;
-    var classes = classNames(
-      { "dropdown-menu": true },
-      { show: store.dropDownOpen }
-    );
-    let labelsCount: number = Object.keys(MAKERS).length / 2;
-    let makerLabels: string[] = [...Array(labelsCount).keys()].map(
-      key => MAKERS[key]
-    );
-
     return (
       <div className="col-12">
         <div className="form-group row">
           <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maturity date</label>
         </div>
         <div className="col-6">
-          <input className="form-control" type="datetime-local" id="example-datetime-local-input" onChange={(event) => {
+          <input className="form-control" type="datetime-local" onChange={(event) => {
             store.updateMaturityDate(event.target.value);
           }} />
         </div>
         <div className="form-group row">
           <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Model</label>
         </div>
+        <div className="col-6">
+        <input className="form-control" type="text" onChange={(event) => {
+          store.updateDetailModel(event.target.value)
+        }} />
+      </div>
         <div className="form-group row">
+        <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Price</label>
+      </div>
+      <div className="col-6">
+      <input className="form-control" type="number" onChange={(event) => {
+        store.updateDetailPrice(event.target.value)
+      }} />
+    </div>
+    <div className="form-group row">
           <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maker</label>
         </div>
 
@@ -136,14 +119,3 @@ window["test.api"] = {
 
 userService.registerUser({ username: "xico", email: "xico@guarda.pt", password: "xpto" });
 userService.userLogin({ username: "xico", password: "xpto" });
-
-setTimeout(() => {
-  window["test.api"]
-    .createCar({
-      make: "VOLKSWAGEN",
-      model: "golf 5",
-      maturityDate: "2019-05-05T20:13:42",
-      price: 280000
-    })
-    .then(x => { });
-}, 3000);

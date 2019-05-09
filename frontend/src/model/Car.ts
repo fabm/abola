@@ -1,6 +1,7 @@
 export enum MAKERS {
   VOLKSVAGEN,
-  RENAULT
+  RENAULT,
+  AUDI
 }
 
 export interface Car {
