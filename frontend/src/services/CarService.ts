@@ -18,7 +18,8 @@ export class CarService {
             .then(res => res.data as Array<any>)
             .then(res => {
                 return res.map((item) => { 
-                    return { ...item, make: MAKERS[item.make] } as Car 
+                    item.make = MAKERS[item.make];
+                    return item;
                 })
             });
     };

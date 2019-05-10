@@ -1,5 +1,5 @@
 export enum MAKERS {
-  VOLKSVAGEN,
+  VOLKSWAGEN,
   RENAULT,
   AUDI
 }
@@ -12,5 +12,7 @@ export interface Car {
 }
 
 export function carToJson(car:Car){
-  return {...car, make:MAKERS[car.make]}
+  let json = (car as any)
+  json.make = MAKERS[car.make];
+  return json;
 }

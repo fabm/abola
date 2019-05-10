@@ -15,7 +15,7 @@ mobx.configure({ enforceActions: "observed" }); // don't allow state modificatio
 class CarView extends React.Component<{ car: Car }, any> {
   render() {
     const car = this.props.car;
-    return <div>{car.make}</div>;
+    return <div>{MAKERS[car.make]}</div>;
   }
 }
 
