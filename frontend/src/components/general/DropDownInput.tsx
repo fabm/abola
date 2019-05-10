@@ -70,8 +70,3 @@ export class DropDownInput extends React.Component<DropDownInputProps,any> {
     </div>
   }
 }
-
-const DropDownInput2 = (props: DropDownInputProps) => {
-
-
-}
