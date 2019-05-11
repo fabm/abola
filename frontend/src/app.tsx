@@ -7,7 +7,7 @@ import { Car, MAKERS } from "./model/Car";
 import { carService } from "./services/CarService";
 import { userService } from "./services/UserService";
 import { CarStore } from "./stores/CarStore";
-import { DropDownInput } from "./components/general/DropDownInput";
+import { DropDownInput, Store as DropDownInputStore } from "./components/general/DropDownInput";
 
 mobx.configure({ enforceActions: "observed" }); // don't allow state modifications outside actions
 
@@ -19,9 +19,22 @@ class CarView extends React.Component<{ car: Car }, any> {
   }
 }
 
+class DropDownInputStoreImp implements DropDownInputStore{
+  @observable
+  isOpen: boolean = false; 
+  @action 
+  updateState(isOpen: boolean) {
+    console.log("changed");
+    this.isOpen = isOpen;
+  }
+}
+
+let dropDownInputStore:DropDownInputStore = new DropDownInputStoreImp();
+
 @observer
 class CarEditor extends React.Component<{ store: CarStore }, any> {
   render() {
+
     const store = this.props.store;
     return (
       <div className="col-12">
@@ -57,8 +70,7 @@ class CarEditor extends React.Component<{ store: CarStore }, any> {
           current={store.detail.make}
           element={MAKERS}
           updateValue={(make) => store.updateDetailMake(make)}
-          isOpen={store.dropDownOpen}
-          updateState={(state) => store.updateDropDown(state)}
+          store={dropDownInputStore}
         />
         <button
           type="button"
