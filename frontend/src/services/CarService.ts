@@ -25,6 +25,7 @@ export class CarService {
             .then(res => {
                 return res.map((item) => { 
                     item.make = MAKERS[item.make];
+                    item.maturityDate = new Date(item.maturityDate);
                     return item;
                 })
             });
