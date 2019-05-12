@@ -96,6 +96,7 @@ export class App extends React.Component<{}, {}> {
             }}
             logoutEvent={() => {
               localStorage.removeItem(appStateStore.appStateValues.userName);
+              appStateStore.updateUserName(null);
             }}
           />
         )}
