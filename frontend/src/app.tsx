@@ -34,7 +34,11 @@ class AppStateStore {
   @computed
   get state(): AppState {
     console.log("try to calculate");
-    if (this.appStateValues.userName === "" || this.appStateValues.userName === null || this.appStateValues.userName === undefined) {
+    if (
+      this.appStateValues.userName === "" ||
+      this.appStateValues.userName === null ||
+      this.appStateValues.userName === undefined
+    ) {
       if (this.appStateValues.register) {
         return AppState.SHOWING_REGISTER;
       }
@@ -98,6 +102,9 @@ export class App extends React.Component<{}, {}> {
         {appStateStore.state === AppState.SHOWING_REGISTER && (
           <UserRegisterEditor
             returnToLoginClick={() => {
+              appStateStore.updateShowRegister(false);
+            }}
+            successefullyRegistered={() => {
               appStateStore.updateShowRegister(false);
             }}
           />
