@@ -1,4 +1,4 @@
-package pt.fabm.template.rest.services
+package pt.fabm.template.rest.controllers
 
 import Consts
 import io.jsonwebtoken.Jwts
@@ -15,7 +15,7 @@ import pt.fabm.template.rest.RestResponse
 
 class UserController(val vertx: Vertx) {
   fun userLogout(rc: RoutingContext): Single<RestResponse> {
-    rc.getCookie(Consts.ACCESS_TOKEN)?.setPath("/api/")?.setMaxAge(0L)
+    rc.getCookie(Consts.ACCESS_TOKEN_COOKIE)?.setPath("/api/")?.setMaxAge(0L)
     return Single.just(RestResponse())
   }
 
@@ -38,10 +38,15 @@ class UserController(val vertx: Vertx) {
           }
           val username = bodyAsJson.getString("user")
           val jws = Jwts.builder().setSubject(username).signWith(Consts.SIGNING_KEY).compact()
-          val cookie = Cookie.cookie(Consts.ACCESS_TOKEN, jws)
+          var cookie = Cookie.cookie(Consts.ACCESS_TOKEN_COOKIE, jws)
           cookie.setHttpOnly(true)
           cookie.setPath("/api/")
           rc.addCookie(cookie)
+
+          cookie = Cookie.cookie(Consts.USER_NAME_COOKIE, username);
+          cookie.setPath("/api/*")
+          rc.addCookie(cookie)
+
           message.reply(null)
           RestResponse(statusCode = 200)
         }
@@ -64,7 +69,7 @@ class UserController(val vertx: Vertx) {
 
         vertx.eventBus().rxSend<String>("dao.user.create", userRegister)
           .map {
-            RestResponse(statusCode = 200)
+            RestResponse(statusCode = 204)
           }
       }
   }

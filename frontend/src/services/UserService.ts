@@ -1,27 +1,27 @@
 import axios from "axios";
 import { User } from "../model/User";
+import Axios from "axios";
 
+export interface RestResult {
+    data: any;
+    status: number;
+}
 
 export class UserService {
-    registerUser(user: User): Promise<any> {
+    registerUser(user: User): Promise<RestResult> {
         let body = {
             name: user.username,
             email: user.email,
             password: user.password
         };
-        return fetch("api/user", { method: "POST", body: JSON.stringify(body) }).then(
-            res => res.text()
-        );
+        return Axios.post("api/user", body)
     };
-    userLogin(user: User): Promise<any> {
+    userLogin(user: User): Promise<RestResult> {
         let body = {
             user: user.username,
             pass: user.password
         };
-        return fetch("api/user/login", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }).then(res => res.text());
+        return Axios.post("api/user/login", body);
     };
 
     userLogout(): Promise<any> {

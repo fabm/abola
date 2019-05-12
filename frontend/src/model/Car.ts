@@ -1,14 +1,12 @@
 export enum MAKERS {
-  VOLKSWAGEN,
-  RENAULT,
-  AUDI
+  AUDI, VOLKSWAGEN, NISSAN, PEUGEOT, CITROEN
 }
 
 export interface Car {
   make: MAKERS;
-  model?: string;
-  maturityDate?: string;
-  price?: number;
+  model: string;
+  maturityDate: Date;
+  price: number;
 }
 
 export function carToJson(car:Car){

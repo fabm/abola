@@ -1,11 +1,17 @@
-import Axios from "axios";
+import Axios, { AxiosResponse } from "axios";
 import { Car, MAKERS } from "../model/Car";
+interface RestResult{
+    data:any;
+    status:number;
+}
 export class CarService {
-    createCar(car: Car): Promise<any> {
+    createCar(car: Car): Promise<RestResult> {
+        console.log("saved car",car);
         return Axios
             .post("api/car", {...car,make:MAKERS[car.make]}, { withCredentials: true })
-            .then(res => {
+            .then(res => {                
                 console.log(res.data);
+                return res as RestResult
             });
     }
 

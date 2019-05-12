@@ -1,19 +1,14 @@
 package pt.fabm.template.rest
 
 import io.reactivex.Completable
-import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.reactivex.core.AbstractVerticle
-import io.vertx.reactivex.core.buffer.Buffer
-import io.vertx.reactivex.ext.web.Cookie
 import io.vertx.reactivex.ext.web.Router
-import io.vertx.reactivex.ext.web.RoutingContext
-import io.vertx.reactivex.ext.web.handler.CookieHandler
 import io.vertx.reactivex.ext.web.handler.StaticHandler
 import pt.fabm.template.extensions.*
-import pt.fabm.template.rest.services.CarController
-import pt.fabm.template.rest.services.UserController
+import pt.fabm.template.rest.controllers.CarController
+import pt.fabm.template.rest.controllers.UserController
 
 class RestVerticle : AbstractVerticle() {
 

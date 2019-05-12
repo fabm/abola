@@ -1,6 +1,6 @@
 import * as React from "react";
 import classNames from "classnames/bind";
-import { observer, propTypes } from "mobx-react";
+import { observer } from "mobx-react";
 
 export interface DropDownInputProps {
   current: number

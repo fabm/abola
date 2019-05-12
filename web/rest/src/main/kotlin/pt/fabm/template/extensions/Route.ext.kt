@@ -77,7 +77,7 @@ fun Route.authHandler(handler: (AuthContext) -> Single<RestResponse>): Route {
       .map { cookie -> Cookie.newInstance(CookieImpl(cookie)) }
       //filter cookies with access token
       .filter { cookie ->
-        cookie.name == Consts.ACCESS_TOKEN
+        cookie.name == Consts.ACCESS_TOKEN_COOKIE
       }
       //first cookie which matches with access_token name or throws NoSuchElement
       .firstOrError()

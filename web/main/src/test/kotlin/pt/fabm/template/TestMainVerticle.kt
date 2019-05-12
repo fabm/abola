@@ -2,10 +2,6 @@ package pt.fabm.template
 
 import Consts
 import io.jsonwebtoken.Jwts
-import io.reactivex.Maybe
-import io.reactivex.MaybeSource
-import io.reactivex.Single
-import io.reactivex.SingleSource
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.http.HttpHeaders
@@ -36,6 +32,7 @@ import pt.fabm.template.models.UserRegisterIn
 import java.io.FileReader
 import java.security.MessageDigest
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 
@@ -161,7 +158,7 @@ class TestMainVerticle {
         .subscribe { response: HttpResponse<Buffer> ->
           testContext.verify {
             val cookie = response.cookies().filter { cookieName ->
-              cookieName.startsWith(Consts.ACCESS_TOKEN + "=")
+              cookieName.startsWith(Consts.ACCESS_TOKEN_COOKIE + "=")
             }
             assertEquals(200, response.statusCode())
             assertEquals(1, cookie.size)
@@ -182,7 +179,7 @@ class TestMainVerticle {
     val client = WebClient.create(vertx)
 
     client.post(port!!, host, "/api/car")
-      .putHeader(HttpHeaders.COOKIE.toString(), "${Consts.ACCESS_TOKEN}=aaa.bbb.ccc")
+      .putHeader(HttpHeaders.COOKIE.toString(), "${Consts.ACCESS_TOKEN_COOKIE}=aaa.bbb.ccc")
       .rxSend()
       .subscribe { response: HttpResponse<Buffer> ->
         testContext.verify {
@@ -204,7 +201,7 @@ class TestMainVerticle {
 
     val client = WebClient.create(vertx)
     val eventBus = vertx.eventBus()
-    val date = LocalDate.of(2019, 5, 1)
+    val date = LocalDateTime.of(2019, 5, 1,3,6)
 
     val car = Car("Golf V", CarMake.VOLKSWAGEN, 25000, date)
 
@@ -220,7 +217,6 @@ class TestMainVerticle {
 
     ebConsumer.rxCompletionHandler().subscribe({
       client.get(port!!, host, "/api/car")
-        //.putHeader(HttpHeaders.COOKIE.toString(), "${Consts.ACCESS_TOKEN}=$jws")
         .addQueryParam("make", car.make.name)
         .addQueryParam("model", car.model)
         .rxSend()
@@ -247,7 +243,7 @@ class TestMainVerticle {
 
     val client = WebClient.create(vertx)
     val eventBus = vertx.eventBus()
-    val date = LocalDate.of(2019, 5, 1)
+    val date = LocalDateTime.of(2019, 5, 1,8,9)
 
     val car = Car("Golf V", CarMake.VOLKSWAGEN, 25000, date)
 
@@ -281,7 +277,7 @@ class TestMainVerticle {
 
     val client = WebClient.create(vertx)
     val eventBus = vertx.eventBus()
-    val before1Month = LocalDate.now().minusMonths(1)
+    val before1Month = LocalDateTime.now().minusMonths(1)
 
     val car = Car("Golf V", CarMake.VOLKSWAGEN, 25000, before1Month)
 
@@ -298,7 +294,7 @@ class TestMainVerticle {
 
     ebConsumer.rxCompletionHandler().subscribe({
       client.post(port!!, host, "/api/car")
-        .putHeader(HttpHeaders.COOKIE.toString(), "${Consts.ACCESS_TOKEN}=$jws")
+        .putHeader(HttpHeaders.COOKIE.toString(), "${Consts.ACCESS_TOKEN_COOKIE}=$jws")
         .rxSendJsonObject(car.toJson())
         .subscribe { response: HttpResponse<Buffer> ->
           testContext.verify {
@@ -323,7 +319,7 @@ class TestMainVerticle {
       "Golf V",
       CarMake.VOLKSWAGEN,
       2000,
-      LocalDate.of(2019, 1, 1)
+      LocalDateTime.of(2019, 1, 1,7,8)
     )
 
     val jws = Jwts.builder().setSubject("test-user")
@@ -338,7 +334,7 @@ class TestMainVerticle {
 
     ebConsumer.rxCompletionHandler().subscribe({
       client.get(port!!, host, "/api/car/list")
-        .putHeader(HttpHeaders.COOKIE.toString(), "${Consts.ACCESS_TOKEN}=$jws")
+        .putHeader(HttpHeaders.COOKIE.toString(), "${Consts.ACCESS_TOKEN_COOKIE}=$jws")
         .rxSend()
         .subscribe { response: HttpResponse<Buffer> ->
           testContext.verify {

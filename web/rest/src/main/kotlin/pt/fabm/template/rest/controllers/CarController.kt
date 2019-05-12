@@ -1,4 +1,4 @@
-package pt.fabm.template.rest.services
+package pt.fabm.template.rest.controllers
 
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -15,7 +15,7 @@ import pt.fabm.template.models.CarMake
 import pt.fabm.template.rest.RestResponse
 import pt.fabm.template.validation.InvalidEntryException
 import pt.fabm.template.validation.RequiredException
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class CarController(val vertx: Vertx) {
@@ -53,7 +53,7 @@ class CarController(val vertx: Vertx) {
       .map { message ->
         message.body()?.let {
           RestResponse(it.toJson(), 200)
-        }?: RestResponse(statusCode = 200)
+        } ?: RestResponse(statusCode = 200)
       }
   }
 
@@ -76,7 +76,7 @@ class CarController(val vertx: Vertx) {
           it.name.equals(strMake)
         } ?: throw InvalidEntryException(strMake, "$rootKey.make"),
         price,
-        LocalDate.parse(strMaturityDate, DateTimeFormatter.ISO_DATE_TIME)
+        LocalDateTime.parse(strMaturityDate, DateTimeFormatter.ISO_DATE_TIME)
       )
     } ?: throw RequiredException(rootKey)
     return vertx.eventBus()

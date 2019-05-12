@@ -1,133 +1,123 @@
-import * as mobx from "mobx";
-import { flow, observable, action } from "mobx";
+import { observable, configure as configureMbox, computed, action } from "mobx";
 import * as React from "react";
-import { observer } from "mobx-react";
-import classNames from "classnames/bind";
-import { Car, MAKERS } from "./model/Car";
 import { carService } from "./services/CarService";
-import { userService } from "./services/UserService";
-import { CarStore } from "./stores/CarStore";
-import { DropDownInput, Store as DropDownInputStore } from "./components/general/DropDownInput";
+import { CarsList, carStore } from "./components/app/CarList";
+import { CarEditor } from "./components/app/CarEditor";
+import {
+  Notifications,
+  notificationStore
+} from "./components/app/Notifications";
+import { LoginEditor } from "./components/app/LoginEditor";
+import { observer } from "mobx-react";
+import { UserRegisterEditor } from "./components/app/UserRegisterEditor";
 
-mobx.configure({ enforceActions: "observed" }); // don't allow state modifications outside actions
+configureMbox({ enforceActions: "observed" }); // don't allow state modifications outside actions
 
-@observer
-class CarView extends React.Component<{ car: Car }, any> {
-  render() {
-    const car = this.props.car;
-    return <div>{MAKERS[car.make]}</div>;
+function getCookie(cname) {
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(";");
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == " ") {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
   }
+  return "";
 }
 
-class DropDownInputStoreImp implements DropDownInputStore{
+interface AppStateValues {
+  register: boolean;
+  userName: string;
+}
+
+enum AppState {
+  LOGGED_IN,
+  WAIT_LOG_IN,
+  SHOWING_REGISTER
+}
+
+class AppStateStore {
   @observable
-  isOpen: boolean = false; 
-  @action 
-  updateState(isOpen: boolean) {
-    console.log("changed");
-    this.isOpen = isOpen;
+  appStateValues: AppStateValues = {
+    register: false,
+    userName: localStorage.getItem("username")
+  };
+
+  @computed
+  get state(): AppState {
+    console.log("try to calculate");
+    if (this.appStateValues.userName === "" || this.appStateValues.userName === null || this.appStateValues.userName === undefined) {
+      if (this.appStateValues.register) {
+        return AppState.SHOWING_REGISTER;
+      }
+      return AppState.WAIT_LOG_IN;
+    }
+    return AppState.LOGGED_IN;
+  }
+
+  @action
+  updateShowRegister(showRegister: boolean) {
+    this.appStateValues.register = showRegister;
+  }
+  @action
+  updateUserName(userName: string) {
+    this.appStateValues.userName = userName;
   }
 }
 
-let dropDownInputStore:DropDownInputStore = new DropDownInputStoreImp();
+let appStateStore = new AppStateStore();
 
 @observer
-class CarEditor extends React.Component<{ store: CarStore }, any> {
+export class App extends React.Component<{}, {}> {
   render() {
-
-    const store = this.props.store;
+    console.log("render " + appStateStore.state);
     return (
-      <div className="col-12">
-        <div className="form-group row">
-          <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maturity date</label>
-        </div>
-        <div className="col-6">
-          <input className="form-control" type="datetime-local" onChange={(event) => {
-            store.updateMaturityDate(event.target.value);
-          }} />
-        </div>
-        <div className="form-group row">
-          <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Model</label>
-        </div>
-        <div className="col-6">
-        <input className="form-control" type="text" onChange={(event) => {
-          store.updateDetailModel(event.target.value)
-        }} />
-      </div>
-        <div className="form-group row">
-        <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Price</label>
-      </div>
-      <div className="col-6">
-      <input className="form-control" type="number" onChange={(event) => {
-        store.updateDetailPrice(event.target.value)
-      }} />
-    </div>
-    <div className="form-group row">
-          <label htmlFor="example-datetime-local-input" className="col-2 col-form-label">Maker</label>
-        </div>
-
-        <DropDownInput
-          current={store.detail.make}
-          element={MAKERS}
-          updateValue={(make) => store.updateDetailMake(make)}
-          store={dropDownInputStore}
-        />
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => store.saveCar()}
-        >
-          save car
-        </button>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => userService.userLogout()}
-        >logout</button>
+      <div className="container" style={{ marginBottom: "5rem" }}>
+        <Notifications />
+        {appStateStore.state === AppState.LOGGED_IN && (
+          <div>Hello {appStateStore.appStateValues.userName}</div>
+        )}
+        <CarsList />
+        {appStateStore.state === AppState.LOGGED_IN && (
+          <CarEditor
+            saveCarEvent={car => {
+              carService.createCar(car).then(res => {
+                if (res.status == 204) {
+                  let notification = notificationStore.createNotification();
+                  notification.content = <div>Successefuly created</div>;
+                  notificationStore.addNotificationTemp(notification, 3000);
+                  carStore.createCar(car);
+                }
+              });
+            }}
+            logoutEvent={() => {
+              localStorage.removeItem(appStateStore.appStateValues.userName);
+            }}
+          />
+        )}
+        {appStateStore.state === AppState.WAIT_LOG_IN && (
+          <LoginEditor
+            loginSuccessefull={user => {
+              appStateStore.updateUserName(user);
+              localStorage.setItem("username", user);
+            }}
+            showUserRegister={() => {
+              appStateStore.updateShowRegister(true);
+            }}
+          />
+        )}
+        {appStateStore.state === AppState.SHOWING_REGISTER && (
+          <UserRegisterEditor
+            returnToLoginClick={() => {
+              appStateStore.updateShowRegister(false);
+            }}
+          />
+        )}
       </div>
     );
   }
 }
-
-@observer
-class CarsList extends React.Component<{ stores: { carStore: CarStore } }, any> {
-  render() {
-    const store = this.props.stores.carStore;
-    return (
-      <div>
-        <ul>
-          {store.cars.map((car, idx) => (
-            <CarView key={idx} car={car} />
-          ))}
-        </ul>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => store.fetchCars()}
-        >
-          fetch cars
-        </button>
-      </div>
-    );
-  }
-}
-const carStore = new CarStore();
-
-export const App = () => {
-  return (
-    <div>
-      <CarsList stores={{ carStore: carStore }} />
-      <CarEditor store={carStore} />
-    </div>
-  );
-};
-
-// To test api
-window["test.api"] = {
-  registerUser: userService.registerUser,
-  login: userService.userLogin,
-  createCar: carService.createCar
-};
-
-userService.registerUser({ username: "xico", email: "xico@guarda.pt", password: "xpto" });
-userService.userLogin({ username: "xico", password: "xpto" });
